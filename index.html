@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>情報セキュリティー学習サイト - メール練習</title>
+    <style>
+        /* リセットCSS */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        /* 全体のスタイル */
+        body {
+            font-family: "Hiragino Kaku Gothic Pro", Meiryo, sans-serif;
+            background-color: #f0f4f8;
+        }
+        /* ヘッダー */
+        .header {
+            background-color: #0288d1;
+            color: white;
+            padding: 15px;
+            text-align: center;
+            position: relative;
+        }
+        .header h1 {
+            font-size: 24px;
+        }
+        .compose-button {
+            position: absolute;
+            right: 20px;
+            top: 15px;
+            background-color: #fff;
+            color: #0288d1;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        .compose-button:hover {
+            background-color: #e1f5fe;
+        }
+        /* コンテナ */
+        .container {
+            display: flex;
+            height: calc(100vh - 60px);
+        }
+        /* サイドバー（メールリスト） */
+        .sidebar {
+            width: 300px;
+            background-color: #ffffff;
+            border-right: 1px solid #ddd;
+            overflow-y: auto;
+            display: block;
+        }
+        .sidebar h2 {
+            padding: 15px;
+            font-size: 18px;
+            background-color: #f5f5f5;
+            border-bottom: 1px solid #ddd;
+        }
+        .email-list {
+            list-style: none;
+        }
+        .email-item {
+            padding: 15px;
+            border-bottom: 1px solid #eee;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            transition: background-color 0.2s;
+        }
+        .email-item:hover {
+            background-color: #e3f2fd;
+        }
+        .email-item.unread .email-subject {
+            font-weight: bold;
+        }
+        .email-icon {
+            width: 24px;
+            height: 24px;
+            margin-right: 10px;
+        }
+        .email-info {
+            flex-grow: 1;
+        }
+        .email-subject {
+            font-size: 16px;
+            color: #333;
+        }
+        .email-from {
+            font-size: 12px;
+            color: #777;
+        }
+        /* メインコンテンツ */
+        .main {
+            flex-grow: 1;
+            background-color: #fafafa;
+            padding: 20px;
+            overflow-y: auto;
+        }
+        .welcome-message {
+            font-size: 18px;
+            color: #555;
+            text-align: center;
+            margin-top: 50px;
+        }
+        .email-content {
+            background-color: white;
+            padding: 20px;
+            border: 1px solid #bbb;
+            border-radius: 5px;
+            max-width: 800px;
+            margin: 0 auto;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            position: relative;
+        }
+        .email-header {
+            border-bottom: 1px solid #ccc;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+        }
+        .email-header h2 {
+            font-size: 22px;
+            color: #333;
+            margin-bottom: 5px;
+        }
+        .email-header p {
+            font-size: 14px;
+            color: #777;
+        }
+        .email-body {
+            font-size: 16px;
+            color: #444;
+            line-height: 1.6;
+            white-space: pre-line;
+        }
+        /* メモ機能 */
+        .tools {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+        }
+        .tool-button {
+            background-color: #fff;
+            border: 1px solid #ccc;
+            border-radius: 50%;
+            width: 35px;
+            height: 35px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background-color 0.2s;
+        }
+        .tool-button:hover {
+            background-color: #f1f1f1;
+        }
+        .tool-button img {
+            width: 20px;
+            height: 20px;
+        }
+        /* メモ表示 */
+        .memo {
+            margin-top: 20px;
+        }
+        .memo textarea {
+            width: 100%;
+            height: 100px;
+            font-size: 14px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            resize: none;
+        }
+        /* フッター（考えさせるメッセージ） */
+        .think {
+            text-align: center;
+            font-size: 18px;
+            color: #444;
+            padding: 15px;
+            background-color: #f5f5f5;
+        }
+        /* メール作成画面 */
+        .compose-area {
+            display: none;
+        }
+        .compose-area.active {
+            display: block;
+        }
+        .compose-form {
+            background-color: white;
+            padding: 20px;
+            border: 1px solid #bbb;
+            border-radius: 5px;
+            max-width: 800px;
+            margin: 0 auto;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .compose-form h2 {
+            margin-bottom: 20px;
+            color: #333;
+        }
+        .compose-form select,
+        .compose-form textarea {
+            width: 100%;
+            font-size: 16px;
+            margin-bottom: 15px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        .compose-form button {
+            background-color: #0288d1;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.2s;
+        }
+        .compose-form button:hover {
+            background-color: #0277bd;
+        }
+        /* モバイル対応 */
+        @media screen and (max-width: 768px) {
+            .container {
+                flex-direction: column;
+                height: auto;
+            }
+            .sidebar {
+                width: 100%;
+                height: auto;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>怪しいメールはどれだろう？</h1>
+        <button class="compose-button" onclick="showCompose()">メール作成</button>
+    </div>
+    <div class="container">
+        <!-- メール一覧 -->
+        <div class="sidebar" id="sidebar">
+            <h2>受信トレイ</h2>
+            <ul class="email-list">
+                <li class="email-item unread" data-email="email1">
+                    <img src="mail.png" class="email-icon" alt="メールアイコン">
+                    <div class="email-info">
+                        <div class="email-subject">アカウントの不審なアクセスについて</div>
+                        <div class="email-from">セキュリティチーム</div>
+                    </div>
+                </li>
+                <li class="email-item unread" data-email="email2">
+                    <img src="mail.png" class="email-icon" alt="メールアイコン">
+                    <div class="email-info">
+                        <div class="email-subject">未払い金額のお知らせ</div>
+                        <div class="email-from">株式会社△△ 請求担当</div>
+                    </div>
+                </li>
+                <li class="email-item unread" data-email="email3">
+                    <img src="mail.png" class="email-icon" alt="メールアイコン">
+                    <div class="email-info">
+                        <div class="email-subject">宿題の詳細について</div>
+                        <div class="email-from">〇〇先生</div>
+                    </div>
+                </li>
+                <li class="email-item unread" data-email="email4">
+                    <img src="mail.png" class="email-icon" alt="メールアイコン">
+                    <div class="email-info">
+                        <div class="email-subject">サマーフェスティバルのご案内</div>
+                        <div class="email-from">イベント事務局</div>
+                    </div>
+                </li>
+                <li class="email-item unread" data-email="email5">
+                    <img src="mail.png" class="email-icon" alt="メールアイコン">
+                    <div class="email-info">
+                        <div class="email-subject">抽選結果のお知らせ</div>
+                        <div class="email-from">抽選管理部</div>
+                    </div>
+                </li>
+            </ul>
+        </div>
+        <!-- メインコンテンツ -->
+        <div class="main">
+            <!-- メール表示エリア -->
+            <div id="email-area">
+                <p class="welcome-message">左側のメール一覧からメールを選択してください。</p>
+            </div>
+            <!-- メール作成エリア -->
+            <div class="compose-area" id="compose-area">
+                <div class="compose-form">
+                    <h2>メール作成</h2>
+                    <select id="scenario-select">
+                        <option value="">シチュエーションを選択してください</option>
+                        <option value="invite-friend">友達を遊びに誘う</option>
+                        <option value="submit-homework">先生に宿題を提出する</option>
+                        <option value="club-notice">部活動の連絡</option>
+                        <option value="family-message">家族に感謝のメッセージを送る</option>
+                        <option value="birthday-invite">誕生日パーティーへの招待</option>
+                    </select>
+                    <textarea id="email-content" placeholder="ここにメール文を入力してください..."></textarea>
+                    <button onclick="saveEmail()">保存</button>
+                    <button onclick="backToInbox()" style="margin-left: 10px;">受信トレイに戻る</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="think">
+        この中で怪しいと思うメールはどれでしょうか？よく考えてみましょう！
+    </div>
+    <script>
+        const emails = {
+            email1: {
+                subject: "アカウントの不審なアクセスについて",
+                from: "セキュリティチーム",
+                body: `尊敬するユーザー様,
+
+最近、お客様のアカウントに不審なアクセスが検出されました。セキュリティを確保するため、以下のリンクからアカウント情報を更新してください。
+
+[アカウント情報更新リンク]
+
+この操作を行わないと、アカウントが一時的にロックされる可能性があります。
+
+よろしくお願いします。
+セキュリティチーム`,
+                memo: ""
+            },
+            email2: {
+                subject: "未払い金額のお知らせ",
+                from: "株式会社△△ 請求担当",
+                body: `お客様各位
+
+いつも弊社サービスをご利用いただきありがとうございます。
+システムの確認により、お客様の未払い金額が1,500円あることが判明いたしました。お手数ですが、以下のリンクよりお支払い手続きをお願いいたします。
+[お支払いページ]
+
+このままご対応いただけない場合、法的手続きを取らせていただく可能性がございますので、ご注意ください。
+ご不明な点がございましたら、お問い合わせください。
+
+株式会社△△
+請求担当`,
+                memo: ""
+            },
+            email3: {
+                subject: "宿題の詳細について",
+                from: "〇〇先生",
+                body: `こんにちは、
+
+先日の授業でお話しした宿題についてです。下記のリンクから宿題の詳細を確認し、提出期限に注意して取り組んでください。
+
+[宿題の詳細リンク]
+
+何か質問があれば、遠慮なくご連絡ください。
+
+よろしくお願いします。
+
+〇〇`,
+                memo: ""
+            },
+            email4: {
+                subject: "サマーフェスティバルのご案内",
+                from: "イベント事務局",
+                body: `〇〇様
+こんにちは、いつもご利用ありがとうございます。
+今年も恒例のサマーフェスティバルを開催いたします！音楽ライブや屋台、花火大会など盛りだくさんの内容でお待ちしております。
+
+日時：8月15日（日）10:00〜21:00
+場所：市民広場
+詳細は以下のリンクからご覧ください。
+[イベント詳細ページ]
+
+皆様のご参加を心よりお待ちしております。
+イベント事務局`,
+                memo: ""
+            },
+            email5: {
+                subject: "抽選結果のお知らせ",
+                from: "抽選管理部",
+                body: `おめでとうございます！
+
+あなたは当社の抽選で一等賞を獲得しました。賞金を受け取るには、以下のリンクから個人情報を入力してください。
+
+[賞金受け取りリンク]
+
+早急に手続きを行わないと、賞金の受け取りが無効になりますのでご注意ください。
+
+感謝しています。
+抽選管理部`,
+                memo: ""
+            }
+        };
+
+        const emailItems = document.querySelectorAll('.email-item');
+        const mainContent = document.querySelector('.main');
+        const emailArea = document.getElementById('email-area');
+        const composeArea = document.getElementById('compose-area');
+        const sidebar = document.getElementById('sidebar');
+
+        emailItems.forEach(item => {
+            item.addEventListener('click', () => {
+                const emailId = item.getAttribute('data-email');
+                const emailData = emails[emailId];
+
+                // 既読にする
+                item.classList.remove('unread');
+
+                emailArea.innerHTML = `
+                    <div class="email-content">
+                        <div class="tools">
+                            <button class="tool-button memo-button" title="メモ">
+                                <img src="memo.png" alt="メモ">
+                            </button>
+                        </div>
+                        <div class="email-header">
+                            <h2>${emailData.subject}</h2>
+                            <p>From: ${emailData.from}</p>
+                        </div>
+                        <div class="email-body">
+                            ${emailData.body}
+                        </div>
+                        <div class="memo" style="display: none;">
+                            <h3>メモ</h3>
+                            <textarea placeholder="ここにメモを書くことができます。">${emailData.memo}</textarea>
+                        </div>
+                    </div>
+                `;
+
+                // メモ機能のイベントリスナー
+                const memoButton = document.querySelector('.memo-button');
+                const memoArea = document.querySelector('.memo');
+                const memoTextarea = document.querySelector('.memo textarea');
+
+                memoButton.addEventListener('click', () => {
+                    if(memoArea.style.display === 'none') {
+                        memoArea.style.display = 'block';
+                    } else {
+                        memoArea.style.display = 'none';
+                    }
+                });
+
+                memoTextarea.addEventListener('input', () => {
+                    emails[emailId].memo = memoTextarea.value;
+                });
+            });
+        });
+
+        function showCompose() {
+            emailArea.style.display = 'none';
+            composeArea.classList.add('active');
+            sidebar.classList.remove('active');
+            document.querySelector('.think').style.display = 'none';
+        }
+
+        function backToInbox() {
+            composeArea.classList.remove('active');
+            emailArea.style.display = 'block';
+            sidebar.classList.add('active');
+            document.querySelector('.think').style.display = 'block';
+        }
+
+        const emailContentData = {};
+
+        document.getElementById('scenario-select').addEventListener('change', function() {
+            const selectedScenario = this.value;
+            document.getElementById('email-content').value = emailContentData[selectedScenario] || "";
+        });
+
+        function saveEmail() {
+            const selectedScenario = document.getElementById('scenario-select').value;
+            const emailText = document.getElementById('email-content').value;
+            if (selectedScenario) {
+                emailContentData[selectedScenario] = emailText;
+                alert('メール文が保存されました！');
+            } else {
+                alert('シチュエーションを選択してください。');
+            }
+        }
+    </script>
+</body>
+</html>
